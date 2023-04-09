@@ -16,21 +16,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Default commpress
-      uses: wangyoucao577/go-release-action@v1.37
+    - uses: wangyoucao577/go-release-action@v1.37
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         goversion: https://go.dev/dl/go1.20.3.linux-amd64.tar.gz
         extra_files: README.md
-
-    - name: zip compress
-      uses: wangyoucao577/go-release-action@v1.37
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: ${{ matrix.goos }}
-        goarch: ${{ matrix.goarch }}
-        goversion: https://go.dev/dl/go1.20.3.linux-amd64.tar.gz
-        extra_files: README.md
-        compress_assets: zip
