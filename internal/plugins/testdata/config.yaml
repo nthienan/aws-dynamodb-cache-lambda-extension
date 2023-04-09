@@ -1,0 +1,5 @@
+table: table-name-here
+hashKey: hash-key-name-here
+hashKeyType: S
+sortKey: sort-key-name-here
+sortKeyType: S
