@@ -1,5 +1,5 @@
 GO           ?= go
-GOFMT        ?= $(GO) fmt
+GOFMT        ?= $(GO)fmt
 
 VERSION		?= $(shell cat VERSION)
 GIT_BRANCH	?= $(subst /,-,$(shell git rev-parse --abbrev-ref HEAD))
