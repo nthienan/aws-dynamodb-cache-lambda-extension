@@ -1,5 +1,5 @@
 GO           ?= go
-GOFMT        ?= $(GO)fmt
+GOFMT        ?= $(GO) fmt
 
 VERSION		?= $(shell cat VERSION)
 GIT_BRANCH	?= $(subst /,-,$(shell git rev-parse --abbrev-ref HEAD))
@@ -7,7 +7,7 @@ GIT_COMMIT	?= $(shell git rev-parse HEAD)
 USER		?= $(shell echo $USER)
 DATE		?= $(shell echo `date`)
 
-APP_BIN	?= dists/aws-dynamodb-cache-lambda-extension
+APP_BIN	?= aws-dynamodb-cache-lambda-extension
 APP_SRC	?= main.go
 
 

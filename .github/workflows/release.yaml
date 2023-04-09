@@ -24,4 +24,3 @@ jobs:
         goversion: https://go.dev/dl/go1.20.3.linux-amd64.tar.gz
         extra_files: README.md
         build_command: make build
-        project_path: dists
