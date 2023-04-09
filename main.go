@@ -9,6 +9,8 @@ import (
 	"github.com/nthienan/aws-dynamodb-cache-lambda-extension/internal/extension"
 	"github.com/nthienan/aws-dynamodb-cache-lambda-extension/internal/ipc"
 	"github.com/nthienan/aws-dynamodb-cache-lambda-extension/internal/plugins"
+	"github.com/nthienan/aws-dynamodb-cache-lambda-extension/internal/version"
+    "github.com/alecthomas/kingpin/v2"
 )
 
 var (
@@ -16,6 +18,12 @@ var (
 )
 
 func main() {
+    kingpin.Version(version.Print("aws-dynamodb-cache-lambda-extension"))
+
+    // parse flags
+	kingpin.HelpFlag.Short('h')
+	kingpin.Parse()
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	sigs := make(chan os.Signal, 1)
