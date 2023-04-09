@@ -13,7 +13,7 @@ import (
 const (
 	Parameters = "parameters"
 	Dynamodb   = "dynamodb"
-	FileName                 = "/var/task/config.yaml"
+	FileName                 = "/var/task/cache.yaml"
 	InitializeCacheOnStartup = "CACHE_EXTENSION_INIT_STARTUP"
 )
 
