@@ -6,7 +6,7 @@ on:
   release:
     types: [created]
 jobs:
-  releases:
+  release:
     name: Release
     runs-on: ubuntu-latest
     strategy:
@@ -15,11 +15,22 @@ jobs:
         goarch: [amd64, arm64]
     steps:
     - uses: actions/checkout@v3
-    - uses: wangyoucao577/go-release-action@v1.37
+
+    - name: Default commpress
+      uses: wangyoucao577/go-release-action@v1.37
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         goversion: https://go.dev/dl/go1.20.3.linux-amd64.tar.gz
-        binary_name: aws-dynamodb-cache-lambda-extension
         extra_files: README.md
+
+    - name: zip compress
+      uses: wangyoucao577/go-release-action@v1.37
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        goversion: https://go.dev/dl/go1.20.3.linux-amd64.tar.gz
+        extra_files: README.md
+        compress_assets: zip
