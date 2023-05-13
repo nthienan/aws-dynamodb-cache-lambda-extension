@@ -48,10 +48,11 @@ func InitDynamodb(configs []DynamoDbConfiguration, initializeCache bool) {
 	}
 }
 
-func buildProjectionExpression(fieldExpr string) *string {
+func buildProjectionExpression(fieldExpr string) (*string, map[string]*string) {
 	if len(fieldExpr) != 0 {
 		fields := strings.Split(fieldExpr, ",")
 		println(PrintPrefix, "Projection fields: ", fields)
+
 		proj := expression.NamesList(expression.Name(fields[0]))
 		for i := 1; i < len(fields); i++ {
 			proj = expression.AddNames(proj, expression.Name(fields[i]))
@@ -63,9 +64,9 @@ func buildProjectionExpression(fieldExpr string) *string {
 		if err != nil {
 			println(PrintPrefix, "Caught an unexpected error: %s", err)
 		}
-		return expr.Projection()
+		return expr.Projection(), expr.Names()
 	}
-	return nil
+	return nil, nil
 }
 
 // Load data from Dynamodb
@@ -73,9 +74,11 @@ func LoadData(config DynamoDbConfiguration) bool {
 	if config.HashKey != "" {
 
 		// Set up the input parameters for the Scan operation
+		projection, attributeNames := buildProjectionExpression(config.Fields)
 		params := &dynamodb.ScanInput{
-			TableName:            aws.String(config.Table),
-			ProjectionExpression: buildProjectionExpression(config.Fields),
+			TableName:                aws.String(config.Table),
+			ProjectionExpression:     projection,
+			ExpressionAttributeNames: attributeNames,
 		}
 
 		// Execute the Scan operation to read every item in the table.
@@ -185,11 +188,13 @@ func GetData(config DynamoDbConfiguration) string {
 		// Create attributeValue map based on hash and sort key
 		var attributeMap = map[string]*dynamodb.AttributeValue{}
 		UpdateAttributeMap(attributeMap, config)
+		projection, attributeNames := buildProjectionExpression(config.Fields)
 
 		result, err := dynamoDbClient.GetItem(&dynamodb.GetItemInput{
-			TableName:            aws.String(config.Table),
-			Key:                  attributeMap,
-			ProjectionExpression: buildProjectionExpression(config.Fields),
+			TableName:                aws.String(config.Table),
+			Key:                      attributeMap,
+			ProjectionExpression:     projection,
+			ExpressionAttributeNames: attributeNames,
 		})
 
 		if err != nil {
