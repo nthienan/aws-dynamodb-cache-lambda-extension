@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
 // Struct to store Dynamodb cache confirmation
@@ -21,6 +22,7 @@ type DynamoDbConfiguration struct {
 	SortKey      string `yaml:"sortKey"`
 	SortKeyType  string `yaml:"sortKeyType"`
 	SortKeyValue string `yaml:"sortKeyValue"`
+	Fields       string `yaml:"fields"`
 }
 
 // Struct for caching the information
@@ -50,9 +52,31 @@ func InitDynamodb(configs []DynamoDbConfiguration, initializeCache bool) {
 // Load data from Dynamodb
 func LoadData(config DynamoDbConfiguration) bool {
 	if config.HashKey != "" {
-		// Set up the input parameters for the Scan operation.
-		params := &dynamodb.ScanInput{
-			TableName: aws.String(config.Table),
+
+		// Set up the input parameters for the Scan operation
+		var params *dynamodb.ScanInput
+
+		if len(config.Fields) != 0 {
+			fields := strings.Split(config.Fields, ",")
+			proj := expression.NamesList(expression.Name(fields[0]))
+			for i := 1; i < len(fields); i++ {
+				proj = expression.AddNames(proj, expression.Name(fields[i]))
+			}
+
+			expr, err := expression.NewBuilder().
+				WithProjection(proj).
+				Build()
+			if err != nil {
+				println(PrintPrefix, "Caught an unexpected error: %s", err)
+			}
+			params = &dynamodb.ScanInput{
+				TableName:            aws.String(config.Table),
+				ProjectionExpression: expr.Projection(),
+			}
+		} else {
+			params = &dynamodb.ScanInput{
+				TableName: aws.String(config.Table),
+			}
 		}
 
 		// Execute the Scan operation to read every item in the table.
@@ -157,7 +181,7 @@ func GenerateCacheKey(config DynamoDbConfiguration, data map[string]interface{})
 
 // Read specific data from Dynamodb
 func GetData(config DynamoDbConfiguration) string {
-	println(PrintPrefix, "Fetch data to cache for'"+config.HashKeyValue+"'")
+	println(PrintPrefix, "Fetch data to cache for '"+config.HashKeyValue+"'")
 	if config.HashKey != "" {
 		// Create attributeValue map based on hash and sort key
 		var attributeMap = map[string]*dynamodb.AttributeValue{}
