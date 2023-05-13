@@ -51,7 +51,7 @@ func InitDynamodb(configs []DynamoDbConfiguration, initializeCache bool) {
 func buildProjectionExpression(fieldExpr string) (*string, map[string]*string) {
 	if len(fieldExpr) != 0 {
 		fields := strings.Split(fieldExpr, ",")
-		println(PrintPrefix, "Projection fields: ", fields)
+		println(PrintPrefix, "Projection fields: %s", fields)
 
 		proj := expression.NamesList(expression.Name(fields[0]))
 		for i := 1; i < len(fields); i++ {
