@@ -35,11 +35,10 @@ func main() {
 		println(plugins.PrintPrefix, "Exiting")
 	}()
 
-	res, err := extensionClient.Register(ctx, plugins.ExtensionName)
+	_, err := extensionClient.Register(ctx, plugins.ExtensionName)
 	if err != nil {
 		panic(err)
 	}
-	println(plugins.PrintPrefix, "Register response:", plugins.PrettyPrint(res))
 
 	// Initialize all the cache plugins
 	extension.InitCacheExtensions()

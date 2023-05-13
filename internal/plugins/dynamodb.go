@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -49,34 +48,34 @@ func InitDynamodb(configs []DynamoDbConfiguration, initializeCache bool) {
 	}
 }
 
+func buildProjectionExpression(fieldExpr string) *string {
+	if len(fieldExpr) != 0 {
+		fields := strings.Split(fieldExpr, ",")
+		println(PrintPrefix, "Projection fields: ", fields)
+		proj := expression.NamesList(expression.Name(fields[0]))
+		for i := 1; i < len(fields); i++ {
+			proj = expression.AddNames(proj, expression.Name(fields[i]))
+		}
+
+		expr, err := expression.NewBuilder().
+			WithProjection(proj).
+			Build()
+		if err != nil {
+			println(PrintPrefix, "Caught an unexpected error: %s", err)
+		}
+		return expr.Projection()
+	}
+	return nil
+}
+
 // Load data from Dynamodb
 func LoadData(config DynamoDbConfiguration) bool {
 	if config.HashKey != "" {
 
 		// Set up the input parameters for the Scan operation
-		var params *dynamodb.ScanInput
-
-		if len(config.Fields) != 0 {
-			fields := strings.Split(config.Fields, ",")
-			proj := expression.NamesList(expression.Name(fields[0]))
-			for i := 1; i < len(fields); i++ {
-				proj = expression.AddNames(proj, expression.Name(fields[i]))
-			}
-
-			expr, err := expression.NewBuilder().
-				WithProjection(proj).
-				Build()
-			if err != nil {
-				println(PrintPrefix, "Caught an unexpected error: %s", err)
-			}
-			params = &dynamodb.ScanInput{
-				TableName:            aws.String(config.Table),
-				ProjectionExpression: expr.Projection(),
-			}
-		} else {
-			params = &dynamodb.ScanInput{
-				TableName: aws.String(config.Table),
-			}
+		params := &dynamodb.ScanInput{
+			TableName:            aws.String(config.Table),
+			ProjectionExpression: buildProjectionExpression(config.Fields),
 		}
 
 		// Execute the Scan operation to read every item in the table.
@@ -188,28 +187,16 @@ func GetData(config DynamoDbConfiguration) string {
 		UpdateAttributeMap(attributeMap, config)
 
 		result, err := dynamoDbClient.GetItem(&dynamodb.GetItemInput{
-			TableName: aws.String(config.Table),
-			Key:       attributeMap,
+			TableName:            aws.String(config.Table),
+			Key:                  attributeMap,
+			ProjectionExpression: buildProjectionExpression(config.Fields),
 		})
+
 		if err != nil {
-			if aerr, ok := err.(awserr.Error); ok {
-				switch aerr.Code() {
-				case dynamodb.ErrCodeProvisionedThroughputExceededException:
-					println(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
-				case dynamodb.ErrCodeResourceNotFoundException:
-					println(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
-				case dynamodb.ErrCodeRequestLimitExceeded:
-					println(dynamodb.ErrCodeRequestLimitExceeded, aerr.Error())
-				case dynamodb.ErrCodeInternalServerError:
-					println(dynamodb.ErrCodeInternalServerError, aerr.Error())
-				default:
-					println(PrintPrefix, PrettyPrint(aerr.Error()))
-				}
-			} else {
-				println(PrintPrefix, PrettyPrint(err.Error()))
-			}
+			println(PrintPrefix, PrettyPrint(err.Error()))
 			return ""
 		}
+
 		if result.Item == nil {
 			println(PrintPrefix, "Could not find '"+config.HashKeyValue+"'")
 			return ""
