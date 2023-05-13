@@ -51,7 +51,7 @@ func InitDynamodb(configs []DynamoDbConfiguration, initializeCache bool) {
 func buildProjectionExpression(fieldExpr string) (*string, map[string]*string) {
 	if len(fieldExpr) != 0 {
 		fields := strings.Split(fieldExpr, ",")
-		println(PrintPrefix, "Projection fields: %s", fields)
+		println(PrintPrefix, fmt.Sprintf("Projection fields: %s", fields))
 
 		proj := expression.NamesList(expression.Name(fields[0]))
 		for i := 1; i < len(fields); i++ {
@@ -62,7 +62,7 @@ func buildProjectionExpression(fieldExpr string) (*string, map[string]*string) {
 			WithProjection(proj).
 			Build()
 		if err != nil {
-			println(PrintPrefix, "Caught an unexpected error: %s", err)
+			println(PrintPrefix, fmt.Sprintf("Caught an unexpected error: %s", err))
 		}
 		return expr.Projection(), expr.Names()
 	}
@@ -134,7 +134,7 @@ func LoadData(config DynamoDbConfiguration) bool {
 
 		return true
 	} else {
-		println(PrintPrefix, "HashKey not available so caching will not be enabled for %s", config.HashKey)
+		println(PrintPrefix, fmt.Sprintf("HashKey not available so caching will not be enabled for %s", config.HashKey))
 		return false
 	}
 }
@@ -229,7 +229,7 @@ func GetData(config DynamoDbConfiguration) string {
 
 		return value
 	} else {
-		println(PrintPrefix, "Hash key not available so caching will not be enabled for %s", config.HashKey)
+		println(PrintPrefix, "Hash key not available so caching will not be enabled for", config.HashKey)
 		return ""
 	}
 }
